@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     passport_number VARCHAR(20) UNIQUE NOT NULL,
     name VARCHAR(100),

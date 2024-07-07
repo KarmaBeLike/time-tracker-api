@@ -9,14 +9,26 @@ import (
 
 type UserRepository interface {
 	GetUsers(page, limit int, filters map[string]string) ([]models.User, int, error)
+	CreateUser(user *models.User) error
+	DeleteUser(userId string) error
 }
 
 type userRepository struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 func NewUserRepository(db *sql.DB) UserRepository {
-	return &userRepository{DB: db}
+	return &userRepository{db: db}
+}
+
+func (r *userRepository) CreateUser(user *models.User) error {
+	query := `
+		INSERT INTO users (name, surname, patronymic, passport_number, address)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, created_at;
+	`
+	err := r.db.QueryRow(query, user.Name, user.Surname, user.Patronymic, user.PassportNumber, user.Address).Scan(&user.ID, &user.CreatedAt)
+	return err
 }
 
 func (r *userRepository) GetUsers(page, limit int, filters map[string]string) ([]models.User, int, error) {
@@ -25,20 +37,27 @@ func (r *userRepository) GetUsers(page, limit int, filters map[string]string) ([
 
 	// Применение фильтров
 	args := []interface{}{}
-	if name, ok := filters["name"]; ok {
-		query += " AND name LIKE $1"
-		args = append(args, "%"+name+"%")
+	name := ""
+	query += " AND (name LIKE $1 OR $1 = '')"
+	if nameq, ok := filters["name"]; ok {
+		nameq = "%" + nameq + "%"
+		name = nameq
 	}
-	if passportNumber, ok := filters["passportNumber"]; ok {
-		query += " AND passport_number = $2"
-		args = append(args, passportNumber)
+	args = append(args, name)
+
+	passportNumber := ""
+	query += " AND (passport_number = $2 OR $2 = '')"
+	if passportNumberQ, ok := filters["passportNumber"]; ok {
+		passportNumber = passportNumberQ
 	}
+	args = append(args, passportNumber)
 
 	// Получение общего количества
 	var total int
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS count_table", query)
-	err := r.DB.QueryRow(countQuery, args...).Scan(&total)
+	err := r.db.QueryRow(countQuery, args...).Scan(&total)
 	if err != nil {
+		fmt.Println("//////")
 		return nil, 0, err
 	}
 
@@ -47,7 +66,7 @@ func (r *userRepository) GetUsers(page, limit int, filters map[string]string) ([
 	query += (" LIMIT $3 OFFSET $4")
 	args = append(args, limit, offset)
 
-	rows, err := r.DB.Query(query, args...)
+	rows, err := r.db.Query(query, args...) // Select fsf, fesfes From fsef where $3
 	if err != nil {
 		return nil, 0, err
 	}
@@ -66,4 +85,10 @@ func (r *userRepository) GetUsers(page, limit int, filters map[string]string) ([
 	}
 
 	return users, total, nil
+}
+
+func (r *userRepository) DeleteUser(userId string) error {
+	query := "DELETE FROM users WHERE id = $1"
+	_, err := r.db.Exec(query, userId)
+	return err
 }

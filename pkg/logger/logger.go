@@ -68,6 +68,7 @@ func PrintError(message string, properties map[string]any) {
 
 func PrintFatal(message string, properties map[string]any) {
 	l.print(LevelFatal, message, properties)
+	os.Exit(1)
 }
 
 func (l *Logger) print(level Level, message string, properties map[string]any) (int, error) {
