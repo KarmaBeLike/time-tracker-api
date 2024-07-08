@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -17,7 +17,9 @@ type UserHandler struct {
 }
 
 func NewUserHandler(userService service.UserService) *UserHandler {
-	return &UserHandler{userService: userService}
+	return &UserHandler{
+		userService: userService,
+	}
 }
 
 func (h *UserHandler) Routes(router *gin.Engine, cfg *config.Config) {
@@ -27,48 +29,34 @@ func (h *UserHandler) Routes(router *gin.Engine, cfg *config.Config) {
 		user.GET("/", h.GetUsers)
 		user.DELETE("/:userId", h.DeleteUser)
 		user.PUT("/:userId", h.UpdateUser)
-		user.GET("/:userId/worklogs", h.GetWorklogs)
-		user.POST("/:userId/tasks/:taskId/start", h.StartTask)
-		user.POST("/:userId/tasks/:taskId/stop", h.StopTask)
 
 	}
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	// var json struct {
-	// 	Name           string `json:"name"`
-	// 	Surname        string `json:"surname"`
-	// 	Patronymic     string `json:"patronymic"`
-	// 	PassportNumber string `json:"passportNumber"`
-	// 	Address        string `json:"address"`
-	// }
-	user := &models.User{}
+	logger.PrintInfo("Handling CreateUser request", nil)
 
-	if err := c.ShouldBindJSON(&user); err == nil {
-		// user := models.User{
-		// 	Name:           json.Name,
-		// 	Surname:        json.Surname,
-		// 	Patronymic:     json.Patronymic,
-		// 	PassportNumber: json.PassportNumber,
-		// 	Address:        json.Address,
-
-		// }
-
-		err := h.userService.CreateUser(user)
-		fmt.Println("handlers", user.CreatedAt)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"status": "created", "user": user})
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var json struct {
+		PassportNumber string `json:"passportNumber"`
 	}
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	user, err := h.userService.CreateUser(json.PassportNumber)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "created", "user": user})
 }
 
 func (h *UserHandler) GetUsers(c *gin.Context) {
 	// Получение параметров запроса
+	logger.PrintInfo("Handling GetUsers request", nil)
+
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page parameter"})
@@ -106,32 +94,6 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 	})
 }
 
-func (h *UserHandler) GetWorklogs(c *gin.Context) {
-	// Реализация логики получения трудозатрат пользователя
-	userId := c.Param("userId")
-	startDate := c.Query("startDate")
-	endDate := c.Query("endDate")
-	c.JSON(http.StatusOK, gin.H{
-		"userId":    userId,
-		"startDate": startDate,
-		"endDate":   endDate,
-		"worklogs": []gin.H{
-			{"taskId": 101, "taskName": "Task 1", "hours": 5, "minutes": 30},
-			{"taskId": 102, "taskName": "Task 2", "hours": 3, "minutes": 45},
-		},
-	})
-}
-
-func (h *UserHandler) StartTask(c *gin.Context) {
-	// Реализация логики начала отсчета времени по задаче
-	c.JSON(http.StatusOK, gin.H{"status": "started", "timestamp": "2023-01-01T12:00:00Z"})
-}
-
-func (h *UserHandler) StopTask(c *gin.Context) {
-	// Реализация логики окончания отсчета времени по задаче
-	c.JSON(http.StatusOK, gin.H{"status": "stopped", "timestamp": "2023-01-01T14:30:00Z"})
-}
-
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	userId := c.Param("userId")
 
@@ -140,7 +102,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 
 	// Вызов метода удаления пользователя из сервиса
 	if err := h.userService.DeleteUser(userId); err != nil {
-		logger.PrintError("Failed to delete user", map[string]any{"userId": userId, "error": err.Error()})
+		logger.PrintError(errors.New("Failed to delete user"), map[string]any{"userId": userId, "error": err.Error()})
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return
 	}
@@ -153,15 +115,37 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 }
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	// Реализация логики обновления данных пользователя
-	userId := c.Param("userId")
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
 	var json struct {
 		Name           string `json:"name"`
+		Surname        string `json:"surname"`
+		Patronymic     string `json:"patronymic"`
 		PassportNumber string `json:"passportNumber"`
+		Address        string `json:"address"`
 	}
-	if err := c.ShouldBindJSON(&json); err == nil {
-		c.JSON(http.StatusOK, gin.H{"status": "updated", "user": gin.H{"id": userId, "name": json.Name, "passportNumber": json.PassportNumber}})
-	} else {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+
+	user := &models.User{
+		ID:             userId,
+		Name:           json.Name,
+		Surname:        json.Surname,
+		Patronymic:     json.Patronymic,
+		PassportNumber: json.PassportNumber,
+		Address:        json.Address,
+	}
+
+	if err := h.userService.UpdateUser(user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "updated", "user": user})
 }

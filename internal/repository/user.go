@@ -1,4 +1,4 @@
-package repositories
+package repository
 
 import (
 	"database/sql"
@@ -11,6 +11,7 @@ type UserRepository interface {
 	GetUsers(page, limit int, filters map[string]string) ([]models.User, int, error)
 	CreateUser(user *models.User) error
 	DeleteUser(userId string) error
+	UpdateUser(user *models.User) error
 }
 
 type userRepository struct {
@@ -33,7 +34,7 @@ func (r *userRepository) CreateUser(user *models.User) error {
 
 func (r *userRepository) GetUsers(page, limit int, filters map[string]string) ([]models.User, int, error) {
 	var users []models.User
-	query := "SELECT id, name, passport_number FROM users WHERE 1=1"
+	query := "SELECT id, name, surname, patronymic, passport_number, task_ids,created_at FROM users WHERE 1=1"
 
 	// Применение фильтров
 	args := []interface{}{}
@@ -57,7 +58,6 @@ func (r *userRepository) GetUsers(page, limit int, filters map[string]string) ([
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS count_table", query)
 	err := r.db.QueryRow(countQuery, args...).Scan(&total)
 	if err != nil {
-		fmt.Println("//////")
 		return nil, 0, err
 	}
 
@@ -74,7 +74,7 @@ func (r *userRepository) GetUsers(page, limit int, filters map[string]string) ([
 
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(&user.ID, &user.Name, &user.PassportNumber); err != nil {
+		if err := rows.Scan(&user.ID, &user.Name, &user.Surname, &user.Patronymic, &user.PassportNumber, &user.TaskIDs, &user.CreatedAt); err != nil {
 			return nil, 0, err
 		}
 		users = append(users, user)
@@ -90,5 +90,15 @@ func (r *userRepository) GetUsers(page, limit int, filters map[string]string) ([
 func (r *userRepository) DeleteUser(userId string) error {
 	query := "DELETE FROM users WHERE id = $1"
 	_, err := r.db.Exec(query, userId)
+	return err
+}
+
+func (r *userRepository) UpdateUser(user *models.User) error {
+	query := `
+		UPDATE users 
+		SET name = $1, surname = $2, patronymic = $3, passport_number = $4, address = $5
+		WHERE id = $6
+	`
+	_, err := r.db.Exec(query, user.Name, user.Surname, user.Patronymic, user.PassportNumber, user.Address, user.ID)
 	return err
 }

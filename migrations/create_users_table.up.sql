@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     surname VARCHAR(100),
     patronymic VARCHAR(100),
     address TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    task_ids INTEGER[]
 );

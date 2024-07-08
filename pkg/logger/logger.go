@@ -62,12 +62,12 @@ func PrintInfo(message string, properties map[string]any) {
 	l.print(LevelInfo, message, properties)
 }
 
-func PrintError(message string, properties map[string]any) {
-	l.print(LevelError, message, properties)
+func PrintError(err error, properties map[string]any) {
+	l.print(LevelError, err.Error(), properties)
 }
 
-func PrintFatal(message string, properties map[string]any) {
-	l.print(LevelFatal, message, properties)
+func PrintFatal(err error, properties map[string]any) {
+	l.print(LevelFatal, err.Error(), properties)
 	os.Exit(1)
 }
 

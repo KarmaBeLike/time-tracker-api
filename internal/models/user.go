@@ -13,15 +13,5 @@ type User struct {
 	Patronymic     string    `json:"patronymic"`
 	Address        string    `json:"address"`
 	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-}
-
-// TimeEntry represents the structure for tracking time spent on tasks.
-type TimeEntry struct {
-	ID        int       `json:"id"`
-	UserID    int       `json:"userId"`
-	Task      string    `json:"task"`
-	StartTime time.Time `json:"startTime"`
-	EndTime   time.Time `json:"endTime"`
-	Duration  int       `json:"duration"` // Duration in minutes
+	TaskIDs        []int     `json:"taskIds"`
 }

@@ -7,12 +7,13 @@ import (
 )
 
 type Config struct {
-	Host       string `mapstructure:"HOST"`
-	Port       int    `mapstructure:"PORT"`
-	DBPort     int    `mapstructure:"DB_PORT"`
-	DBName     string `mapstructure:"DB_NAME"`
-	DBUser     string `mapstructure:"DB_USER"`
-	DBPassword string `mapstructure:"DB_PASSWORD"`
+	Host             string `mapstructure:"HOST"`
+	Port             int    `mapstructure:"PORT"`
+	DBPort           int    `mapstructure:"DB_PORT"`
+	DBName           string `mapstructure:"DB_NAME"`
+	DBUser           string `mapstructure:"DB_USER"`
+	DBPassword       string `mapstructure:"DB_PASSWORD"`
+	PeopleAPIBaseURL string `mapstructure:"PEOPLE_API_BASE_URL"`
 }
 
 func Load() (*Config, error) {

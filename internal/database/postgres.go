@@ -61,18 +61,6 @@ func RunMigrations(db *sql.DB) error {
 	return nil
 }
 
-// func executeSQLFile(db *sql.DB, filePath string) error {
-// 	content, err := os.ReadFile(filePath)
-// 	if err != nil {
-// 		return errors.Wrap(err, "read sql file")
-// 	}
-
-// 	if _, err := db.Exec(string(content)); err != nil {
-// 		return errors.Wrap(err, "execute sql file")
-// 	}
-// 	return nil
-// }
-
 func InitDB(cfg *config.Config) {
 	var err error
 	DB, err = OpenDB(cfg)
