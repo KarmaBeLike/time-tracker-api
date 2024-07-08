@@ -23,12 +23,21 @@ func NewTaskHandler(taskService service.TaskService) *TaskHandler {
 func (t *TaskHandler) Routes(router *gin.Engine, cfg *config.Config) {
 	task := router.Group("/tasks")
 	{
-		task.GET("/:userId/worklogs", t.GetWorklogs)
-		task.POST("/:userId/tasks/:taskId/start", t.StartTask)
-		task.POST("/:userId/tasks/:taskId/stop", t.StopTask)
+		task.GET("/:userId/worklogs", t.GetWorklogs)           // @summary Get list of tasks for a user
+		task.POST("/:userId/tasks/:taskId/start", t.StartTask) // @summary Start a task for a user
+		task.POST("/:userId/tasks/:taskId/stop", t.StopTask)   // @summary End a task for a user
 	}
 }
 
+// @Summary Get list of tasks for a user
+// @Description Get a list of tasks for a user with optional date range
+// @Tags Tasks
+// @Produce  json
+// @Param userId path int true "User ID"
+// @Param startDate query string false "Start date"
+// @Param endDate query string false "End date"
+// @Success 200 {array} Task
+// @Router /users/{userId}/tasks [get]
 func (h *TaskHandler) GetWorklogs(c *gin.Context) {
 	userIdStr := c.Param("userId")
 	startDate := c.Query("startDate")
@@ -58,6 +67,14 @@ func (h *TaskHandler) GetWorklogs(c *gin.Context) {
 	})
 }
 
+// @Summary Start a task for a user
+// @Description Start a task for a user based on user ID
+// @Tags Tasks
+// @Produce  json
+// @Param userId path int true "User ID"
+// @Param task body StartTaskRequest true "Task info"
+// @Success 200 {object} Task
+// @Router /users/{userId}/tasks/start [post]
 func (t *TaskHandler) StartTask(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {
@@ -80,6 +97,14 @@ func (t *TaskHandler) StartTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "started", "timestamp": time.Now().UTC().Format(time.RFC3339)})
 }
 
+// @Summary End a task for a user
+// @Description End a task for a user based on user ID
+// @Tags Tasks
+// @Produce  json
+// @Param userId path int true "User ID"
+// @Param task body EndTaskRequest true "Task info"
+// @Success 200 {object} Task
+// @Router /users/{userId}/tasks/end [post]
 func (t *TaskHandler) StopTask(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {

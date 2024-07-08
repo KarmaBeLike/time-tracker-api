@@ -25,14 +25,22 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 func (h *UserHandler) Routes(router *gin.Engine, cfg *config.Config) {
 	user := router.Group("/users")
 	{
-		user.POST("/", h.CreateUser)
-		user.GET("/", h.GetUsers)
-		user.DELETE("/:userId", h.DeleteUser)
-		user.PUT("/:userId", h.UpdateUser)
+		user.POST("/", h.CreateUser)          // @summary Create a new user
+		user.GET("/", h.GetUsers)             // @summary Get list of users
+		user.DELETE("/:userId", h.DeleteUser) // @summary Delete a user
+		user.PUT("/:userId", h.UpdateUser)    // @summary Update a user
 
 	}
 }
 
+// @Summary Create a new user
+// @Description Create a new user based on passport number
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param user body CreateUserRequest true "User info"
+// @Success 200 {object} User
+// @Router /users [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	logger.PrintInfo("Handling CreateUser request", nil)
 
@@ -53,6 +61,16 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "created", "user": user})
 }
 
+// @Summary Get list of users
+// @Description Get a list of users with optional filters and pagination
+// @Tags Users
+// @Produce  json
+// @Param name query string false "Name"
+// @Param passportNumber query string false "Passport Number"
+// @Param page query int false "Page number"
+// @Param page_size query int false "Page size"
+// @Success 200 {array} User
+// @Router /users [get]
 func (h *UserHandler) GetUsers(c *gin.Context) {
 	// Получение параметров запроса
 	logger.PrintInfo("Handling GetUsers request", nil)
@@ -94,15 +112,21 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 	})
 }
 
+// @Summary Delete a user
+// @Description Delete a user based on user ID
+// @Tags Users
+// @Param userId path int true "User ID"
+// @Success 204
+// @Router /users/{userId} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
-	userId := c.Param("userId")
+	userId := c.Param("userid")
 
 	// Логирование начала процесса удаления пользователя
 	logger.PrintDebug("Attempting to delete user", map[string]any{"userId": userId})
 
 	// Вызов метода удаления пользователя из сервиса
 	if err := h.userService.DeleteUser(userId); err != nil {
-		logger.PrintError(errors.New("Failed to delete user"), map[string]any{"userId": userId, "error": err.Error()})
+		logger.PrintError(errors.New("failed to delete user"), map[string]any{"userId": userId, "error": err.Error()})
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return
 	}
@@ -114,6 +138,15 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "deleted", "userId": userId})
 }
 
+// @Summary Update a user
+// @Description Update user information based on user ID
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param userId path int true "User ID"
+// @Param user body UpdateUserRequest true "User info"
+// @Success 200 {object} User
+// @Router /users/{userId} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {
