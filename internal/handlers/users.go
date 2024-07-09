@@ -69,7 +69,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 // @Param passportNumber query string false "Passport Number"
 // @Param page query int false "Page number"
 // @Param page_size query int false "Page size"
-// @Success 200 {array} User
+// @Success 200 {object} GetUsersResponse
 // @Router /users [get]
 func (h *UserHandler) GetUsers(c *gin.Context) {
 	// Получение параметров запроса

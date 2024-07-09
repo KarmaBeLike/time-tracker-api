@@ -98,13 +98,13 @@ func (t *TaskHandler) StartTask(c *gin.Context) {
 }
 
 // @Summary End a task for a user
-// @Description End a task for a user based on user ID
+// @Description End a task for a user based on user ID and task ID
 // @Tags Tasks
-// @Produce  json
+// @Produce json
 // @Param userId path int true "User ID"
-// @Param task body EndTaskRequest true "Task info"
+// @Param taskId path int true "Task ID"
 // @Success 200 {object} Task
-// @Router /users/{userId}/tasks/end [post]
+// @Router /tasks/{userId}/tasks/{taskId}/stop [post]
 func (t *TaskHandler) StopTask(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {

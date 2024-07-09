@@ -1,0 +1,417 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample time tracker server.",
+        "title": "Time Tracker API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/users": {
+            "post": {
+                "summary": "Create a new user",
+                "description": "Create a new user based on passport number",
+                "tags": ["Users"],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "User info",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Get list of users",
+                "description": "Get a list of users with optional filters and pagination",
+                "tags": ["Users"],
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "type": "string",
+                        "description": "Name"
+                    },
+                    {
+                        "in": "query",
+                        "name": "passportNumber",
+                        "type": "string",
+                        "description": "Passport Number"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Page number"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Page size"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "page": {
+                                    "type": "integer",
+                                    "format": "int32"
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "format": "int32"
+                                },
+                                "total": {
+                                    "type": "integer",
+                                    "format": "int32"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/User"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/users/{userId}": {
+            "delete": {
+                "summary": "Delete a user",
+                "description": "Delete a user based on user ID",
+                "tags": ["Users"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "userId",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update a user",
+                "description": "Update user information based on user ID",
+                "tags": ["Users"],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "userId",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "User info",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/tasks/{userId}/worklogs": {
+            "get": {
+                "summary": "Get list of tasks for a user",
+                "description": "Get a list of tasks for a user with optional date range",
+                "tags": ["Tasks"],
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "userId",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID"
+                    },
+                    {
+                        "in": "query",
+                        "name": "startDate",
+                        "type": "string",
+                        "format": "date",
+                        "description": "Start date"
+                    },
+                    {
+                        "in": "query",
+                        "name": "endDate",
+                        "type": "string",
+                        "format": "date",
+                        "description": "End date"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Task"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/tasks/{userId}/tasks/{taskId}/start": {
+            "post": {
+                "summary": "Start a task for a user",
+                "description": "Start a task for a user based on user ID",
+                "tags": ["Tasks"],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "userId",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Task ID"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Task info",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/StartTaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Task"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/tasks/{userId}/tasks/{taskId}/stop": {
+            "post": {
+                "summary": "End a task for a user",
+                "description": "End a task for a user based on user ID",
+                "tags": ["Tasks"],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "userId",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Task ID"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Task info",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EndTaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Task"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "CreateUserRequest": {
+            "type": "object",
+            "properties": {
+                "passportNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                },
+                "patronymic": {
+                    "type": "string"
+                },
+                "passportNumber": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "User": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                },
+                "patronymic": {
+                    "type": "string"
+                },
+                "passportNumber": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "Task": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "userId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "startTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "endTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "duration": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        }
+    }
+}

@@ -5,6 +5,9 @@ import (
 	"os"
 
 	"github.com/KarmaBeLike/time-tracker-api/config"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
 	postgres "github.com/KarmaBeLike/time-tracker-api/internal/database"
 	"github.com/KarmaBeLike/time-tracker-api/internal/external"
 	"github.com/KarmaBeLike/time-tracker-api/internal/handlers"
@@ -44,8 +47,11 @@ func main() {
 	if err := postgres.RunMigrations(db); err != nil {
 		logger.PrintFatal(err, nil)
 	}
-
 	router := gin.Default()
+	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+
+	router.Run()
 
 	// Инициализация репозитория и сервиса
 	userRepo := repositories.NewUserRepository(db)
